@@ -5,10 +5,10 @@
 #include <string.h>
 #include <unistd.h>
 
-void *function(int param)
+void *function(void* param)
 {
   int read_size, file_size;
-  int client_id = param;
+  int client_id = (int)param;
   char name_file[256];
   char text_in_file[256];
   FILE *file;
@@ -65,6 +65,13 @@ int main(int argc, char* argv[])
   int socket_id, client_id, c;
   struct sockaddr_in server_addr, client_addr;
 
+#ifdef THREAD
+	pthread_t threads[5] = { NULL };
+	int i = 0;
+#elif defined(PROCESS)
+	pid_t process_id  = 0;
+#endif
+
   if((socket_id = socket(AF_INET, SOCK_STREAM, 0)) == -1)
   {
     perror("ERROR in creating socket\n");
@@ -85,7 +92,7 @@ int main(int argc, char* argv[])
   else
     printf("Bind done\n");
  
-  listen(socket_id, 3);
+  listen(socket_id, 5);
   
   printf("waiting for incoming connections\n");
 
@@ -93,14 +100,43 @@ int main(int argc, char* argv[])
   while((client_id = accept(socket_id, (struct sockaddr *)&client_addr, (socklen_t *)&c)))
   {	
     printf("Connection accepted\n");
-    function(client_id);
-  }
-
-  if(client_id < 0)
+    if(client_id < 0)
     {
        perror("ERROR in accepting\n");
        return 1;
     }
+    
+#ifdef THREAD
+	for(i = 0; i < 5; i++)
+	{
+	     if(threads[i] == NULL)
+	        break;
 
+	}
+	if(pthread_create(&threads[i], NULL, function, (void*) client_id) < 0)
+	{
+	     printf("Thread wasn't created\n");
+	     continue;
+	}
+
+	printf("Thread was created\n");
+#elif defined(PROCESS)
+	process_id = fork();
+	if(process_id < 0)
+	{
+	   printf("ERROR in create process\n");
+	   return 1;
+	}
+	else if(process_id == 0)
+	{
+	   function((void*)client_id);
+	    	return 0;
+	}
+	else close(client_id);
+	
+#else
+	function((void*)client_id);
+#endif
+   }    
   return 0;
 }
