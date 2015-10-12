@@ -5,6 +5,61 @@
 #include <string.h>
 #include <unistd.h>
 
+void *function(int param)
+{
+  int read_size, file_size;
+  int client_id = param;
+  char name_file[256];
+  char text_in_file[256];
+  FILE *file;
+  read_size = recv(client_id, name_file, 256, 0);
+
+  if(read_size == 0)
+  {
+     perror("Client disconnected\n");
+     close(client_id);
+     return;
+  }
+  else if(read_size == -1)
+  {
+     perror("recv failed\n");
+     close(client_id);
+     return;
+  }
+  
+  if(access(name_file, F_OK) < 0)
+  {
+     perror("File not found\n");
+     close(client_id);
+     return; 
+  }
+
+  file = fopen(name_file, "r");
+
+  if(file == NULL)
+  {
+     perror("ERROR in openning file\n");
+     close(client_id);
+     return;
+  }
+
+  while(1)
+  {
+     read_size = fread(text_in_file, 1, 256, file);
+     if(read_size > 0)
+        send(client_id, text_in_file, 256, 0);
+
+     if(feof(file))
+     {
+	printf("File was sent\n");
+	break;
+     }
+  }
+  
+  fclose(file);
+  close(client_id);
+}
+
 int main(int argc, char* argv[])
 {
   int socket_id, client_id, c;
@@ -31,10 +86,14 @@ int main(int argc, char* argv[])
     printf("Bind done\n");
  
   listen(socket_id, 3);
+  
+  printf("waiting for incoming connections\n");
 
+  c = sizeof(struct sockaddr_in);
   while((client_id = accept(socket_id, (struct sockaddr *)&client_addr, (socklen_t *)&c)))
   {	
     printf("Connection accepted\n");
+    function(client_id);
   }
 
   if(client_id < 0)
