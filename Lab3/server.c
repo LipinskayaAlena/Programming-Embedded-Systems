@@ -7,8 +7,8 @@
 
 int main(int argc, char* argv[])
 {
-  int socket_id;
-  struct sockaddr_in server_addr
+  int socket_id, client_id, c;
+  struct sockaddr_in server_addr, client_addr;
 
   if((socket_id = socket(AF_INET, SOCK_STREAM, 0)) == -1)
   {
@@ -31,6 +31,17 @@ int main(int argc, char* argv[])
     printf("Bind done\n");
  
   listen(socket_id, 3);
+
+  while((client_id = accept(socket_id, (struct sockaddr *)&client_addr, (socklen_t *)&c)))
+  {	
+    printf("Connection accepted\n");
+  }
+
+  if(client_id < 0)
+    {
+       perror("ERROR in accepting\n");
+       return 1;
+    }
 
   return 0;
 }
