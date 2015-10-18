@@ -11,7 +11,8 @@ MODULE_AUTHOR("Lipinskaya");
 static int size_of_message;
 
 
-static int first;
+static long first;
+static long second;
 
 static ssize_t dev_read(struct file * file, char * buf, size_t count, loff_t *ppos);
 static ssize_t dev_write(struct file *file, const char __user * buffer, size_t length, loff_t * offset);
@@ -40,8 +41,8 @@ static ssize_t dev_read(struct file * file, char * buf,
 	minor = MINOR(file_inode(file)->i_rdev);
 	
 	switch(minor) {
-		case 1:
-			snprintf(message, sizeof(message), "Number = %d\n",first);
+		case 2:
+			snprintf(message, sizeof(message), "Numbers = %ld, %ld \n", first, second);
 			break;
 	}
 
@@ -73,7 +74,11 @@ static ssize_t dev_write(struct file *file,
    	case 0:
    		copy_from_user(buffer, buf, sizeof(buf));
    		kstrtol(buffer, 10, &first);
-   	break;
+		break;
+	case 1:
+		copy_from_user(buffer, buf, sizeof(buf));
+		kstrtol(buffer, 10, &second);
+   		break;
    }
    size_of_message = strlen(buffer);
    
