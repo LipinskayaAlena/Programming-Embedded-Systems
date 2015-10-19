@@ -14,64 +14,78 @@ static int size_of_message;
 static long first;
 static long second;
 static char operation;
+static long result;
 
-static ssize_t dev_read(struct file * file, char * buf, size_t count, loff_t *ppos);
-static ssize_t dev_write(struct file *file, const char __user * buffer, size_t length, loff_t * offset);
-static int dev_open(struct inode *inode, struct file *file);
-static int dev_release(struct inode *inode, struct file *file);
-static int dev_init(void);
-static void dev_exit(void);
+static ssize_t functionRead(struct file *file, char *buf, size_t count, loff_t *ppos);
+static ssize_t functionWrite(struct file *file, const char __user * buffer, size_t length, loff_t * offset);
+static int functionInit(void);
+static void functionExit(void);
+static int calculate(void);
 
 struct file_operations my_fops = {
 	.owner   = THIS_MODULE,
-	.read    = dev_read,
-	.write   = dev_write,
-	.open    = dev_open,
-	.release = dev_release,
+	.read    = functionRead,
+	.write   = functionWrite,
 };
 
-
-static ssize_t dev_read(struct file * file, char * buf, 
-                         size_t len, loff_t *ppos) 
-{ 
-	int error = 0;
-	int major, minor;
-	char message[256];
-	memset(message, 0, sizeof(message));
-	major = MAJOR(file_inode(file)->i_rdev);
-	minor = MINOR(file_inode(file)->i_rdev);
-	
-	switch(minor) {
-		case 3:
-			snprintf(message, sizeof(message), "%ld %c %ld \n", first, operation, second);
+static int calculate(void)
+{
+	switch(operation)
+	{
+		case '+': 
+			result = first + second;
 			break;
+		case '-':
+			result = first - second;
+			break;
+		case '*':
+			result = first * second;
+			break;
+		case '/':
+			if(second == 0)
+				return 1;
+			else result = first / second;
+			break;
+		default:
+			return -1;
+	}
+	return 0;
+}
+static ssize_t functionRead(struct file *file, char *buf, size_t len, loff_t *ppos) 
+{ 
+	int calculating = 0;
+	char message[256];
+
+	calculating = calculate();
+	switch(MINOR(file_inode(file)->i_rdev)) {
+		case 3:
+			if(calculating == 0)
+				snprintf(message, sizeof(message), "Result: %ld \n", result);
+			else if(calculating == 1)
+				snprintf(message, sizeof(message), "ERROR! DIVISION ON ZERO!\n");
+			else if(calculating == -1)
+				snprintf(message, sizeof(message), "ERROR! WRONG OPERATION!\n");
+			break;		
 	}
 
 	
 	size_of_message = strlen(message);
-
-	if (message[*ppos] == '\0') {
-        printk(KERN_INFO "End of string, returning zero.\n");
-        return 0;
-    }
+   
+	if(message[*ppos] == '\0')
+		return 0;
 
 	copy_to_user(buf, &message[*ppos], 1);
 	*ppos += 1;
 	return 1;
 } 
 
-static ssize_t dev_write(struct file *file, 
-	const char __user * buf, size_t length, loff_t * offset) 
+static ssize_t functionWrite(struct file *file,	const char __user * buf, size_t length, loff_t * offset) 
 {
-   int major, minor;
    char buffer[256];
-   memset(buffer, 0, sizeof(buffer));
-
-   major = MAJOR(file_inode(file)->i_rdev);
-   minor = MINOR(file_inode(file)->i_rdev);
    
    copy_from_user(buffer, buf, sizeof(buf));
-   switch(minor) {
+
+   switch(MINOR(file_inode(file)->i_rdev)) {
    	case 0:
    		copy_from_user(buffer, buf, sizeof(buf));
    		kstrtol(buffer, 10, &first);
@@ -90,34 +104,24 @@ static ssize_t dev_write(struct file *file,
    return size_of_message;
 } 
 
-static int dev_open(struct inode *inode,struct file *filp)
+static int functionInit(void)
 {
-    return 0;
-}
-
-static int dev_release(struct inode *inode,struct file *filp)
-{
-    return 0;
-}
-
-static int dev_init(void)
-{
-	int err = 0;
+	int regist = 0;
     
-	err = register_chrdev(300, "calc", &my_fops); 
-	if(err < 0) { 
+	regist = register_chrdev(200, "calc", &my_fops); 
+	if(regist < 0) { 
 		printk(KERN_ERR "Can not register char device\n"); 
-		return err;
+		return regist;
 	}
 	return 0;
 }
  
 
-static void dev_exit(void)
+static void functionExit(void)
 {
- 	unregister_chrdev(300, "calc");
+ 	unregister_chrdev(200, "calc");
 	printk(KERN_ALERT "Device unregistered\n");
 }
 
-module_init(dev_init);
-module_exit(dev_exit);
+module_init(functionInit);
+module_exit(functionExit);
