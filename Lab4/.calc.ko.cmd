@@ -1,0 +1,1 @@
+cmd_/home/alena/GitHub/Programming-Embedded-Systems/Lab4/calc.ko := ld -r -m elf_x86_64 -T ./scripts/module-common.lds --build-id  -o /home/alena/GitHub/Programming-Embedded-Systems/Lab4/calc.ko /home/alena/GitHub/Programming-Embedded-Systems/Lab4/calc.o /home/alena/GitHub/Programming-Embedded-Systems/Lab4/calc.mod.o

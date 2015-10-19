@@ -82,7 +82,7 @@ static ssize_t dev_write(struct file *file,
    		break;
 	case 2: 
 		copy_from_user(buffer, buf, sizeof(buf));
-		operation = buffer[0];
+		kstrtol(buffer, 10, &operation);
 		break;
    }
    size_of_message = strlen(buffer);
