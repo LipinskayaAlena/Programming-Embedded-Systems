@@ -30,7 +30,7 @@ struct file_operations my_fops = {
 
 static int calculate(void)
 {
-	switch(operation)
+	switch (operation)
 	{
 		case '+': 
 			result = first + second;
@@ -57,7 +57,7 @@ static ssize_t functionRead(struct file *file, char *buf, size_t len, loff_t *pp
 	char message[256];
 
 	calculating = calculate();
-	switch(MINOR(file_inode(file)->i_rdev)) {
+	switch (MINOR(file_inode(file)->i_rdev)) {
 		case 3:
 			if(calculating == 0)
 				snprintf(message, sizeof(message), "Result: %ld \n", result);
@@ -71,7 +71,7 @@ static ssize_t functionRead(struct file *file, char *buf, size_t len, loff_t *pp
 	
 	size_of_message = strlen(message);
    
-	if(message[*ppos] == '\0')
+	if (message[*ppos] == '\0')
 		return 0;
 
 	copy_to_user(buf, &message[*ppos], 1);
@@ -85,7 +85,7 @@ static ssize_t functionWrite(struct file *file,	const char __user * buf, size_t 
    
    copy_from_user(buffer, buf, sizeof(buf));
 
-   switch(MINOR(file_inode(file)->i_rdev)) {
+   switch (MINOR(file_inode(file)->i_rdev)) {
    	case 0:
    		copy_from_user(buffer, buf, sizeof(buf));
    		kstrtol(buffer, 10, &first);
@@ -109,7 +109,7 @@ static int functionInit(void)
 	int regist = 0;
     
 	regist = register_chrdev(200, "calc", &my_fops); 
-	if(regist < 0) { 
+	if (regist < 0) { 
 		printk(KERN_ERR "Can not register char device\n"); 
 		return regist;
 	}
