@@ -8,4 +8,4 @@ process:
 	gcc client.c -o client.out
 	gcc server.c -DPROCESS -o server.out
 clean:
-	rm -rf *.bin
+	rm -rf *.out
