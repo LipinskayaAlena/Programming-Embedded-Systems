@@ -1,1 +1,0 @@
-cmd_/home/alena/GitHub/Programming-Embedded-Systems/Lab5/timer.ko := ld -r -m elf_x86_64 -T ./scripts/module-common.lds --build-id  -o /home/alena/GitHub/Programming-Embedded-Systems/Lab5/timer.ko /home/alena/GitHub/Programming-Embedded-Systems/Lab5/timer.o /home/alena/GitHub/Programming-Embedded-Systems/Lab5/timer.mod.o
