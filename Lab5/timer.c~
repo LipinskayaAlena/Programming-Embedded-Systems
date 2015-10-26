@@ -23,7 +23,9 @@ static void hello(unsigned long arg)
 {
 	printk(KERN_INFO "Hello world!\n");
 	timer.expires = jiffies + HZ * delay;
-	add_timer(&timer);
+	//add_timer(&timer);
+	if (delay == 0)
+		del_timer(&timer);
 }
 
 ssize_t show(struct kobject *kobj, struct kobj_attribute *attr, char *buf)
@@ -40,9 +42,9 @@ ssize_t store(struct kobject *kobj, struct kobj_attribute *attr, const char *buf
 			init_timer(&timer);
 			timer.function = hello;
 			timer.data = 0;
-			hello(0);
 		}
 		delay = tmp;
+		add_timer(&timer);
 	}
 	return count;
 }
@@ -68,7 +70,9 @@ static int my_init(void)
 
 static void my_exit(void) 
 {
+	del_timer(&timer);
 	kobject_put(kobj);
+	sysfs_remove_file(kobj, &sc_attrb.attr));
 }
 
 module_init(my_init);
