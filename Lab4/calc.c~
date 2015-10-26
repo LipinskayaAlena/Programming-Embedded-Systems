@@ -6,7 +6,7 @@
 #include <asm/uaccess.h> 
 
 MODULE_AUTHOR("Lipinskaya"); 
-MODULE_LICENSE("GPL");
+
 
 static int size_of_message;
 
